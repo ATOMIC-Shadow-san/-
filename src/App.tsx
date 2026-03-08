@@ -121,13 +121,18 @@ export default function App() {
 
   // WebSocket Connection
   useEffect(() => {
-    if (isJoined) {
+    let ws: WebSocket | null = null;
+    let reconnectTimer: NodeJS.Timeout;
+
+    const connect = () => {
+      if (!isJoined) return;
+
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const ws = new WebSocket(`${protocol}//${window.location.host}`);
+      ws = new WebSocket(`${protocol}//${window.location.host}`);
       
       ws.onopen = () => {
         console.log('Connected to server');
-        ws.send(JSON.stringify({
+        ws?.send(JSON.stringify({
           type: 'JOIN_ROOM',
           payload: {
             roomId,
@@ -144,9 +149,23 @@ export default function App() {
         }
       };
 
+      ws.onclose = () => {
+        console.log('Disconnected from server, reconnecting...');
+        reconnectTimer = setTimeout(connect, 2000);
+      };
+
       setSocket(ws);
-      return () => ws.close();
-    }
+    };
+
+    connect();
+
+    return () => {
+      clearTimeout(reconnectTimer);
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+    };
   }, [isJoined, roomId, playerName]);
 
   const syncState = useCallback((newState: GameState) => {

@@ -180,7 +180,21 @@ async function startServer() {
           if (!currentRoomId) return;
           const room = rooms.get(currentRoomId);
           if (room) {
+            const oldPlayers = room.state.players;
             room.state = { ...room.state, ...message.payload };
+            
+            // Restore socketId and isConnected that might be stripped by client
+            if (message.payload.players) {
+              room.state.players = message.payload.players.map((newP: any) => {
+                const oldP = oldPlayers.find(p => p.name === newP.name);
+                return {
+                  ...newP,
+                  socketId: oldP?.socketId,
+                  isConnected: oldP?.isConnected
+                };
+              });
+            }
+            
             broadcast(room);
           }
           break;
