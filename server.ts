@@ -59,6 +59,10 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     app.use(express.static("dist"));
+    // SPA fallback: serve index.html for all other routes
+    app.get("*", (req, res) => {
+      res.sendFile("index.html", { root: "dist" });
+    });
   }
 
   wss.on("connection", (ws) => {
