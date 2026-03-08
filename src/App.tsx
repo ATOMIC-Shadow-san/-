@@ -348,7 +348,7 @@ export default function App() {
 
       // Only allow the current player to move OR host to move bot
       const myPlayer = prev.players.find(p => p.name === playerName);
-      const isHost = prev.players.find(p => !p.isBot)?.name === playerName;
+      const isHost = prev.players.find(p => !p.isBot && p.isConnected !== false)?.name === playerName;
       const canMove = (myPlayer && myPlayer.id === currentPlayerIndex) || (isHost && player?.isBot);
       
       if (!canMove) {
@@ -542,7 +542,7 @@ export default function App() {
     
     const currentPlayer = gameState.players[gameState.currentTurn];
     const myPlayer = gameState.players.find(p => p.name === playerName);
-    const isHost = gameState.players.find(p => !p.isBot)?.name === playerName;
+    const isHost = gameState.players.find(p => !p.isBot && p.isConnected !== false)?.name === playerName;
 
     // Allow roll if it's my turn OR if I'm host and it's a bot's turn
     const canRoll = (myPlayer && myPlayer.id === gameState.currentTurn) || (isHost && currentPlayer?.isBot);
@@ -565,7 +565,7 @@ export default function App() {
   // Bot Turn Logic
   useEffect(() => {
     const currentPlayer = gameState.players[gameState.currentTurn];
-    const isHost = gameState.players.find(p => !p.isBot)?.name === playerName;
+    const isHost = gameState.players.find(p => !p.isBot && p.isConnected !== false)?.name === playerName;
     
     if (isHost && currentPlayer?.isBot && !gameState.isGameOver && !gameState.isRolling && !showBuyModal && gameState.isStarted) {
       const timer = setTimeout(() => {
@@ -588,7 +588,9 @@ export default function App() {
     if (!showBuyModal) return;
 
     setGameState(prev => {
-      const playerIndex = 0; // User is always index 0
+      const playerIndex = prev.players.findIndex(p => p.name === playerName);
+      if (playerIndex === -1) return prev;
+      
       const player = prev.players[playerIndex];
       const tile = prev.tiles[showBuyModal.tileId];
       let newMoney = player.money;
@@ -879,7 +881,7 @@ export default function App() {
                   ))}
                 </div>
 
-                {gameState.players[0]?.name === playerName && (
+                {gameState.players.find(p => !p.isBot && p.isConnected !== false)?.name === playerName && (
                   <button
                     onClick={startGame}
                     className="px-3 py-1.5 sm:px-6 sm:py-3 md:px-10 md:py-4 bg-[#141414] text-white rounded-full font-bold hover:scale-105 transition-transform active:scale-95 flex items-center gap-1 sm:gap-2 text-[8px] sm:text-sm md:text-lg shadow-lg"
@@ -888,7 +890,7 @@ export default function App() {
                     開始遊戲
                   </button>
                 )}
-                {gameState.players[0]?.name !== playerName && (
+                {gameState.players.length > 0 && gameState.players.find(p => !p.isBot && p.isConnected !== false)?.name !== playerName && (
                   <div className="flex items-center gap-1 sm:gap-2 text-[8px] sm:text-xs md:text-sm font-bold opacity-60">
                     <Users className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse" />
                     等待房主...
@@ -1040,13 +1042,13 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => handleBuyDecision(true)}
-                  disabled={gameState.players[0].money < gameState.tiles[showBuyModal.tileId].price}
+                  disabled={(gameState.players.find(p => p.name === playerName)?.money || 0) < gameState.tiles[showBuyModal.tileId].price}
                   className="py-3 bg-[#141414] text-white rounded-full font-bold hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
                 >
                   確認
                 </button>
               </div>
-              {gameState.players[0].money < gameState.tiles[showBuyModal.tileId].price && (
+              {(gameState.players.find(p => p.name === playerName)?.money || 0) < gameState.tiles[showBuyModal.tileId].price && (
                 <p className="text-center text-xs text-red-500 mt-4 font-mono">餘額不足</p>
               )}
             </motion.div>

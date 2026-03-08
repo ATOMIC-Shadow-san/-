@@ -14,6 +14,7 @@ export interface Player {
   status: PlayerStatus;
   color: string;
   isBot: boolean;
+  isConnected?: boolean;
 }
 
 export enum TileType {

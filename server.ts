@@ -14,6 +14,7 @@ interface Player {
   color: string;
   isBot: boolean;
   socketId?: string;
+  isConnected?: boolean;
 }
 
 interface Tile {
@@ -119,6 +120,7 @@ async function startServer() {
           
           if (existingPlayerIndex !== -1) {
             room.state.players[existingPlayerIndex].socketId = socketId;
+            room.state.players[existingPlayerIndex].isConnected = true;
           } else if (room.state.players.length < 4) {
             const playerColors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b"];
             const newPlayer: Player = {
@@ -130,6 +132,7 @@ async function startServer() {
               color: playerColors[room.state.players.length] || playerColor,
               isBot: false,
               socketId: socketId,
+              isConnected: true,
             };
             room.state.players.push(newPlayer);
             room.state.logs.push(`${playerName} 加入了遊戲。`);
@@ -200,8 +203,13 @@ async function startServer() {
         const room = rooms.get(currentRoomId);
         if (room) {
           room.sockets.delete(socketId);
-          // We don't remove the player from the state to allow reconnection
-          // But we could log it
+          
+          const player = room.state.players.find(p => p.socketId === socketId);
+          if (player) {
+            player.isConnected = false;
+            broadcast(room);
+          }
+
           if (room.sockets.size === 0) {
             // Optional: Clean up empty rooms after some time
           }
