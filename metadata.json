@@ -1,0 +1,5 @@
+{
+  "name": "二中大富翁 (TCSSH Monopoly)",
+  "description": "A web-based Monopoly game inspired by Taichung Second Senior High School, featuring properties, chance/fate cards, and bot players.",
+  "requestFramePermissions": []
+}
