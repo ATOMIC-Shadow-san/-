@@ -363,7 +363,7 @@ export default function App() {
       const currentPlayerIndex = prev.currentTurn;
       const player = prev.players[currentPlayerIndex];
       
-      if (!player) return prev;
+      if (!player) return { ...prev, isRolling: false };
 
       // Only allow the current player to move OR host to move bot
       const myPlayer = prev.players.find(p => p.name === playerName);
@@ -371,7 +371,7 @@ export default function App() {
       const canMove = (myPlayer && myPlayer.id === currentPlayerIndex) || (isHost && player?.isBot);
       
       if (!canMove) {
-        return prev;
+        return { ...prev, isRolling: false };
       }
 
       if (player.status !== PlayerStatus.Normal) {
@@ -580,6 +580,26 @@ export default function App() {
       executeTurn(step);
     }, 1000);
   };
+
+  // Anti-stuck mechanism for dice rolling
+  useEffect(() => {
+    if (gameState.isRolling) {
+      const timer = setTimeout(() => {
+        setGameState(prev => {
+          if (prev.isRolling) {
+            const isHost = prev.players.find(p => !p.isBot && p.isConnected !== false)?.name === playerName;
+            const newState = { ...prev, isRolling: false };
+            if (isHost) {
+              syncState(newState);
+            }
+            return newState;
+          }
+          return prev;
+        });
+      }, 5000); // 5 seconds timeout
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.isRolling, playerName, syncState]);
 
   // Bot Turn Logic
   useEffect(() => {
