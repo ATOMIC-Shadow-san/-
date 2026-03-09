@@ -9,14 +9,16 @@ export const PLAYER_COLORS = [
   '#3b82f6', // Blue
   '#10b981', // Green
   '#f59e0b', // Amber
+  '#8b5cf6', // Purple
+  '#ec4899', // Pink
 ];
 
-export const PLAYER_NAMES = ['玩家 1', '機器人 A', '機器人 B', '機器人 C'];
+export const PLAYER_NAMES = ['玩家 1', '機器人 A', '機器人 B', '機器人 C', '機器人 D', '機器人 E'];
 
 export const createInitialTiles = (): Tile[] => {
   const landmarks = [
     "起點", "二中校門", "二中操場", "機會", "二中圖書館", "二中教官室", "命運", "二中體育館", "二中福利社", "天使",
-    "二中音樂館", "二中藝教大樓", "機會", "二中至善樓", "二中明德樓", "命運", "二中弘道樓", "二中萃英樓", "監獄",
+    "二中音樂館", "二中藝教大樓", "機會", "二中志清樓", "二中明德樓", "命運", "二中忠孝樓", "二中萃英樓", "監獄",
     "臺中火車站", "臺中公園", "機會", "一中街商圈", "中友百貨", "命運", "勤美誠品", "草悟道", "惡魔",
     "逢甲夜市", "秋紅谷", "機會", "國家歌劇院", "高美濕地", "命運", "科博館", "新光&遠百"
   ];
@@ -24,7 +26,7 @@ export const createInitialTiles = (): Tile[] => {
   const tiles: Tile[] = [];
   for (let i = 0; i < BOARD_SIZE; i++) {
     let type = TileType.Property;
-    let name = landmarks[i] || `房產 ${i}`;
+    let name = landmarks[i] || `地標 ${i}`;
     let price = 0;
 
     if (i === 0) {

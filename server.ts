@@ -82,13 +82,13 @@ async function startServer() {
             // Initialize tiles
             const landmarks = [
               "起點", "二中校門", "二中操場", "機會", "二中圖書館", "二中教官室", "命運", "二中體育館", "二中福利社", "天使",
-              "二中音樂館", "二中藝教大樓", "機會", "二中至善樓", "二中明德樓", "命運", "二中弘道樓", "二中萃英樓", "監獄",
+              "二中音樂館", "二中藝教大樓", "機會", "二中志清樓", "二中明德樓", "命運", "二中忠孝樓", "二中萃英樓", "監獄",
               "臺中火車站", "臺中公園", "機會", "一中街商圈", "中友百貨", "命運", "勤美誠品", "草悟道", "惡魔",
               "逢甲夜市", "秋紅谷", "機會", "國家歌劇院", "高美濕地", "命運", "科博館", "新光&遠百"
             ];
             const initialTiles = Array.from({ length: 36 }, (_, i) => {
               let type = "PROPERTY";
-              let name = landmarks[i] || `房產 ${i}`;
+              let name = landmarks[i] || `地標 ${i}`;
               let price = 0;
               if (i === 0) type = "START";
               else if ([3, 12, 21, 30].includes(i)) type = "CHANCE";
@@ -125,8 +125,8 @@ async function startServer() {
           if (existingPlayerIndex !== -1) {
             room.state.players[existingPlayerIndex].socketId = socketId;
             room.state.players[existingPlayerIndex].isConnected = true;
-          } else if (room.state.players.length < 4) {
-            const playerColors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b"];
+          } else if (room.state.players.length < 6) {
+            const playerColors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
             const newPlayer: Player = {
               id: room.state.players.length,
               name: playerName,
@@ -154,8 +154,8 @@ async function startServer() {
           const room = rooms.get(currentRoomId);
           if (room && !room.state.isStarted) {
             // Fill with bots if less than 4 players
-            const botNames = ["機器人 A", "機器人 B", "機器人 C"];
-            const botColors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b"];
+            const botNames = ["機器人 A", "機器人 B", "機器人 C", "機器人 D", "機器人 E"];
+            const botColors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
             
             while (room.state.players.length < 4) {
               const botId = room.state.players.length;

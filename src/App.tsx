@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import confetti from 'canvas-confetti';
 import { 
   Dice1,
   Dice2,
@@ -238,7 +239,7 @@ export default function App() {
         currentTiles[sellHouseIndex].ownerId = null;
         // Reset price to base
         currentTiles[sellHouseIndex].price = 500 * (Math.floor(sellHouseIndex / 3) + 1);
-        logs.push(`${currentPlayer.name} 資金不足，以七折出售房產 ${sellHouseIndex}，獲得 ${sellPrice} 元。`);
+        logs.push(`${currentPlayer.name} 資金不足，以七折出售 ${currentTiles[sellHouseIndex].name}，獲得 ${sellPrice} 元。`);
       } else {
         currentPlayer.status = PlayerStatus.Bankrupt;
         logs.push(`${currentPlayer.name} 宣佈破產！`);
@@ -251,7 +252,7 @@ export default function App() {
   }, []);
 
   const handleChance = (playerIndex: number, position: number, step: number) => {
-    const f = Math.floor(Math.random() * 7);
+    const f = Math.floor(Math.random() * 12);
     let moneyChange = 0;
     let statusChange = PlayerStatus.Normal;
     let log = '';
@@ -276,7 +277,7 @@ export default function App() {
         break;
       case 4:
         moneyChange = -1500;
-        log = "機會：在弘道樓走廊奔跑被教官抓到，罰款 1500 元。";
+        log = "機會：在忠孝樓走廊奔跑被教官抓到，罰款 1500 元。";
         break;
       case 5:
         moneyChange = 4000;
@@ -286,12 +287,32 @@ export default function App() {
         moneyChange = -500;
         log = "機會：在福利社買午餐時發現錢包掉了，損失 500 元。";
         break;
+      case 7:
+        moneyChange = 6000;
+        log = "機會：段考考全校第一，獲得校友會獎學金 6000 元。";
+        break;
+      case 8:
+        moneyChange = -1000;
+        log = "機會：上課偷玩手機被沒收，花費 1000 元買新手機。";
+        break;
+      case 9:
+        moneyChange = 2000;
+        log = "機會：參加二中校園歌唱大賽獲得冠軍，獲得 2000 元。";
+        break;
+      case 10:
+        moneyChange = -500;
+        log = "機會：忘記帶學生證，進校門被記警告，花費 500 元愛校服務銷過。";
+        break;
+      case 11:
+        moneyChange = 3500;
+        log = "機會：代表學校參加全國音樂比賽特優，獲得 3500 元。";
+        break;
     }
     return { moneyChange, statusChange, log };
   };
 
   const handleFate = (playerIndex: number, position: number, step: number, playerMoney: number, players: Player[], tiles: Tile[]) => {
-    const f = Math.floor(Math.random() * 8);
+    const f = Math.floor(Math.random() * 12);
     let moneyChange = 0;
     let statusChange = PlayerStatus.Normal;
     let log = '';
@@ -335,7 +356,7 @@ export default function App() {
         });
 
         if (sellHouseIndex !== -1) {
-          log = "命運：新校長上任，新官上任三把火。失去最貴的房產。";
+          log = "命運：新校長上任，新官上任三把火。失去最貴的地標。";
           // This will be handled in the main state update
         } else {
           log = "命運：新校長上任，下午 4 點提早放學。再動一次！";
@@ -353,6 +374,22 @@ export default function App() {
       case 7:
         moneyChange = 2500;
         log = "命運：二中校慶抽獎抽中二獎！獲得 2500 元。";
+        break;
+      case 8:
+        moneyChange = -2000;
+        log = "命運：二中校園淹水，所有地標維修費，損失 2000 元。";
+        break;
+      case 9:
+        log = "命運：遇到二中傳說中的好老師，心情大好，再動一次！";
+        extraTurn = true;
+        break;
+      case 10:
+        moneyChange = -2500;
+        log = "命運：不小心打破實驗室器材，賠償 2500 元。";
+        break;
+      case 11:
+        moneyChange = 3000;
+        log = "命運：獲得傑出校友提拔，獲得 3000 元。";
         break;
     }
     return { moneyChange, statusChange, log, extraTurn, otherPlayersMoneyChanges, sellHouseIndex: f === 4 ? 4 : -1 }; // sellHouseIndex logic is a bit messy in C++, let's refine
@@ -403,6 +440,15 @@ export default function App() {
       if (player.position + step >= BOARD_SIZE) {
         newMoney += START_BONUS;
         newLogs.push(`${player.name} 經過起點，獲得 ${START_BONUS} 元！`);
+        
+        // Trigger confetti for passing start if it's the current user
+        if (myPlayer && myPlayer.id === currentPlayerIndex) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
       }
 
       const tile = newTiles[newPosition];
@@ -418,7 +464,7 @@ export default function App() {
             if (newMoney >= tile.price + 5000) {
               newMoney -= tile.price;
               newTiles[newPosition] = { ...tile, ownerId: currentPlayerIndex, price: Math.floor(tile.price / 2) };
-              newLogs.push(`${player.name} 花了 ${tile.price} 元購買了房產 ${newPosition}！`);
+              newLogs.push(`${player.name} 花了 ${tile.price} 元購買了 ${tile.name}！`);
             }
           } else {
             // User turn - show modal
@@ -433,7 +479,7 @@ export default function App() {
             if (newMoney >= tile.price + 5000) {
               newMoney -= tile.price;
               newTiles[newPosition] = { ...tile, price: Math.floor(tile.price * 2.3) };
-              newLogs.push(`${player.name} 花了 ${tile.price} 元升級了房產 ${newPosition}！`);
+              newLogs.push(`${player.name} 花了 ${tile.price} 元升級了 ${tile.name}！`);
             }
           } else {
             // User turn - show modal
@@ -456,9 +502,9 @@ export default function App() {
 
           if (hasNeighborOwned) {
             rent *= 2;
-            newLogs.push(`連鎖效應！由於 ${prev.players[ownerIndex].name} 擁有相鄰房產，過路費翻倍為 ${rent} 元！`);
+            newLogs.push(`連鎖效應！由於 ${prev.players[ownerIndex].name} 擁有相鄰地標，過路費翻倍為 ${rent} 元！`);
           } else {
-            newLogs.push(`${player.name} 到了 ${prev.players[ownerIndex].name} 的房產，支付過路費 ${rent} 元。`);
+            newLogs.push(`${player.name} 到了 ${prev.players[ownerIndex].name} 的 ${tile.name}，支付過路費 ${rent} 元。`);
           }
 
           newMoney -= rent;
@@ -503,7 +549,7 @@ export default function App() {
         });
 
         // Handle losing most expensive house
-        if (log.includes("失去最貴的房產")) {
+        if (log.includes("失去最貴的地標")) {
           let maxPrice = 0;
           let houseIdx = -1;
           newTiles.forEach((t, idx) => {
@@ -620,6 +666,27 @@ export default function App() {
     const alivePlayers = gameState.players.filter(p => p.status !== PlayerStatus.Bankrupt);
     if (alivePlayers.length <= 1) {
       setGameState(prev => ({ ...prev, isGameOver: true, logs: [...prev.logs, `遊戲結束！獲勝者是 ${alivePlayers[0]?.name || '無人'}！`] }));
+      
+      // Trigger confetti when game is over and someone wins
+      if (alivePlayers.length === 1) {
+        const duration = 3 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+        const interval: any = setInterval(function() {
+          const timeLeft = animationEnd - Date.now();
+
+          if (timeLeft <= 0) {
+            return clearInterval(interval);
+          }
+
+          const particleCount = 50 * (timeLeft / duration);
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+        }, 250);
+      }
     }
   }, [gameState.players, gameState.isStarted]);
 
@@ -640,11 +707,11 @@ export default function App() {
         if (showBuyModal.type === 'buy') {
           newMoney -= tile.price;
           newTiles[showBuyModal.tileId] = { ...tile, ownerId: playerIndex, price: Math.floor(tile.price / 2) };
-          newLogs.push(`${player.name} 花了 ${tile.price} 元購買了房產 ${showBuyModal.tileId}！`);
+          newLogs.push(`${player.name} 花了 ${tile.price} 元購買了 ${tile.name}！`);
         } else {
           newMoney -= tile.price;
           newTiles[showBuyModal.tileId] = { ...tile, price: Math.floor(tile.price * 2.3) };
-          newLogs.push(`${player.name} 花了 ${tile.price} 元升級了房產 ${showBuyModal.tileId}！`);
+          newLogs.push(`${player.name} 花了 ${tile.price} 元升級了 ${tile.name}！`);
         }
       }
 
@@ -909,7 +976,7 @@ export default function App() {
               <div className="flex flex-col items-center">
                 <Users className="w-6 h-6 sm:w-10 sm:h-10 md:w-16 md:h-16 opacity-10 mb-1 sm:mb-4" />
                 <h2 className="text-sm sm:text-xl md:text-2xl font-serif italic font-bold mb-1 sm:mb-2">等待室</h2>
-                <p className="text-[8px] sm:text-xs md:text-sm opacity-60 mb-2 sm:mb-6">目前玩家: {gameState.players.length} / 4</p>
+                <p className="text-[8px] sm:text-xs md:text-sm opacity-60 mb-2 sm:mb-6">目前玩家: {gameState.players.length} / 6</p>
                 
                 <div className="flex flex-col gap-1 sm:gap-2 mb-2 sm:mb-8 w-full max-w-[120px] sm:max-w-[200px]">
                   {gameState.players.map(p => (
@@ -1064,12 +1131,12 @@ export default function App() {
                   {showBuyModal.type === 'buy' ? <TrendingUp className="w-6 h-6 text-emerald-600" /> : <Home className="w-6 h-6 text-emerald-600" />}
                 </div>
                 <h2 className="text-2xl font-serif italic font-bold">
-                  {showBuyModal.type === 'buy' ? '購買房產' : '升級房屋'}
+                  {showBuyModal.type === 'buy' ? '購買地標' : '升級地標'}
                 </h2>
               </div>
               
               <p className="text-lg mb-8">
-                是否花費 <span className="font-mono font-bold text-emerald-600">${gameState.tiles[showBuyModal.tileId].price}</span> {showBuyModal.type === 'buy' ? '購買房產' : '升級房產'} {showBuyModal.tileId}？
+                是否花費 <span className="font-mono font-bold text-emerald-600">${gameState.tiles[showBuyModal.tileId].price}</span> {showBuyModal.type === 'buy' ? '購買' : '升級'} {gameState.tiles[showBuyModal.tileId].name}？
               </p>
 
               <div className="grid grid-cols-2 gap-4">
